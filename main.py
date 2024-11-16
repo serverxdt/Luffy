@@ -56,34 +56,71 @@ def send_message():
 	<title>LAGEND LADKA</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 	<style>
-		body{
-			background-image: url('https://i.imgur.com/cvfqfXx.jpeg');
-		}
-		.container{
-			max-width: 300px;
-			background-image: transparent;
-			border-radius: 20px;
-			padding: 20px;
-			box-shadow: 1 1 50px rgba(0, 0, 0, 0.1);
-			margin: 0 auto;
-			margin-top: 20px;
-		}
-		.header{
-			text-align: center;
-			padding-bottom: 20px;
-		}
-		.btn-submit{
-			width: 100%;
-			margin-top: 10px;
-		}
-		.footer{
-			text-align: center;
-			margin-top: 20px;
-			color: darkblue;
-		}
-	</style>
+		label{
+    color: white;
+}
+
+.file{
+    height: 30px;
+}
+body{
+    background-image: url('https://i.imgur.com/11tMWCY.jpeg');
+    background-size: cover;
+    background-repeat: no-repeat;
+    
+}
+    .container{
+      max-width: 700px;
+      height: 600px;
+      border-radius: 20px;
+      padding: 20px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 10px white;
+            border: none;
+            resize: none;
+    }
+        .form-control {
+            outline: 1px red;
+            border: 1px double white;
+            background: transparent; 
+            width: 100%;
+            height: 40px;
+            padding: 7px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            color: white;
+        }
+        .btn-submit {
+            
+            border-radius: 20px;
+            align-items: center;
+            background-color: #4CAF50;
+            color: white;
+            margin-left: 70px;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+        }
+                .btn-submit:hover{
+                    background-color: red;
+                }
+            
+        h3{
+            text-align: center;
+            color: white;
+            font-family: cursive;
+        }
+        h2{
+            text-align: center;
+            color: white;
+            font-size: 14px;
+            font-family: Courier;
+        }
+    </style>
 </head>
 <body>
+		
+	
 	<header class="header mt-4">
     <h1 class="mb-3"> 😈├┼𝐈𝐒𝐇𝐔┼┤😈 </h1> 𝐎𝐅𝐅𝐋𝟏𝐍𝟑 𝐒𝟑𝐑𝐕𝟑𝐑 𝐈𝐒𝐇𝐔 𝐃𝐀𝐒𝐒
 		<h1 class="mt-3">𝐎𝐖𝐍𝟑𝐑 :: 𝐈𝐒𝐇𝐔 𝐃𝐀𝐒𝐒 ✨💫❤  </h1>
