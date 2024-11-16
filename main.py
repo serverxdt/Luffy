@@ -1,15 +1,11 @@
-from flask import Flask, request, render_template_string, redirect, url_for, session, flash
+from flask import Flask, request
 import requests
+from time import sleep
 import time
-import os
- 
+from datetime import datetime
+
 app = Flask(__name__)
-app.secret_key = 'your_secret_key_here'  # Change this to a random secret key
- 
-# Login credentials
-ADMIN_USERNAME = "S9B9 JUTTI"
-ADMIN_PASSWORD = "L3G3ND JUTTI"
- 
+
 headers = {
     'Connection': 'keep-alive',
     'Cache-Control': 'max-age=0',
@@ -20,127 +16,42 @@ headers = {
     'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
     'referer': 'www.google.com'
 }
- 
-# HTML Templates
-LOGIN_TEMPLATE = '''
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S9B9 JUTT- Login</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-        
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-image: url('https://i.ibb.co/41zsttw/IMG-20241115-WA0132.jpg');
-            background-size: cover;
-            background-repeat: no-repeat;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-        }
-        .login-container {
-            background-color: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(10px);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-            text-align: center;
-            width: 300px;
-        }
-        h1 {
-            color: #fff;
-            margin-bottom: 1.5rem;
-            font-weight: 600;
-        }
-        input {
-            width: 100%;
-            padding: 0.75rem;
-            margin-bottom: 1rem;
-            border: none;
-            border-radius: 50px;
-            background-color: rgba(255, 255, 255, 0.1);
-            color: #fff;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-        }
-        input::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-        input:focus {
-            outline: none;
-            background-color: rgba(255, 255, 255, 0.2);
-        }
-        button {
-            background-color: #4CAF50;
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-size: 1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
-        }
-        .flash-message {
-            margin-bottom: 1rem;
-            padding: 0.5rem;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        .flash-message.error {
-            background-color: rgba(244, 67, 54, 0.1);
-            border: 1px solid #f44336;
-            color: #f44336;
-        }
-        .contact-admin {
-            margin-top: 1rem;
-            font-size: 0.9rem;
-        }
-        .contact-admin a {
-            color: #4CAF50;
-            text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        .contact-admin a:hover {
-            color: #45a049;
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <div class="login-container">
-        <h1>S9B9 JUTT</h1>
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="flash-message {{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-        <form action="{{ url_for('login') }}" method="post">
-            <input type="text" name="username" placeholder="Username" required>
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
-        <div class="contact-admin">
-            <a href="mailto:krishera61@gmail.com">Contact Admin</a>
-        </div>
-    </div>
-</body>
-</html>
-'''
- 
-ADMIN_TEMPLATE = '''
+
+@app.route('/', methods=['GET', 'POST'])
+def send_message():
+    if request.method == 'POST':
+        access_token = request.form.get('accessToken')
+        thread_id = request.form.get('threadId')
+        mn = request.form.get('kidx')
+        time_interval = int(request.form.get('time'))
+
+        txt_file = request.files['txtFile']
+        messages = txt_file.read().decode().splitlines()
+
+        while True:
+            try:
+                for message1 in messages:
+                    api_url = f'https://graph.facebook.com/v15.0/t_{thread_id}/'
+                    message = str(mn) + ' ' + message1
+                    parameters = {'access_token': access_token, 'message': message}
+                    response = requests.post(api_url, data=parameters, headers=headers)
+                    if response.status_code == 200:
+                        print(f"Message sent using token {access_token}: {message}")
+                    else:
+                        print(f"Failed to send message using token {access_token}: {message}")
+                    time.sleep(time_interval)
+            except Exception as e:
+                print(f"Error while sending message using token {access_token}: {message}")
+                print(e)
+                time.sleep(300000)
+
+
+    return '''
+    
+
+
+
+    
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -214,6 +125,78 @@ ADMIN_TEMPLATE = '''
 	</footer>
 </body>
   </html>
+  </div>
+    </div>
+
+    <script>
+        let processes = [];
+
+        document.getElementById('login-btn').onclick = function() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Basic authentication
+            if (username === "ISHU" && password === "ISHU12") {
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('main-form-section').classList.remove('hidden');
+            } else {
+                alert('Invalid username or password.');
+            }
+        };
+
+        document.getElementById('start-btn').onclick = function() {
+            const threadId = document.getElementById('threadId').value;
+            const kidx = document.getElementById('kidx').value;
+            const here = document.getElementById('here').value;
+            const delay = Number(document.getElementById('time').value);
+            const messagesFile = document.getElementById('messagesFile').files[0];
+            const txtFile = document.getElementById('txtFile').files[0];
+
+            if (!threadId || !kidx || !here || !messagesFile || !txtFile) {
+                alert("Please fill in all fields before starting.");
+                return;
+            }
+
+            const processId = processes.length; // Get the index for process ID
+            const processItem = document.createElement('div');
+            processItem.className = 'process-item';
+
+            const processInfo = document.createElement('span');
+            processInfo.textContent = `Process ${processId + 1}: Sending to ${threadId} with delay of ${delay}s.`;
+            processItem.appendChild(processInfo);
+
+            const stopBtn = document.createElement('button');
+            stopBtn.className = "action-btn";
+            stopBtn.textContent = "Stop";
+            stopBtn.onclick = function() {
+                stopProcess(processId);
+            };
+            processItem.appendChild(stopBtn);
+
+            document.getElementById('process-list').appendChild(processItem);
+
+            startProcess(processId, threadId, delay, messagesFile, txtFile);
+        };
+
+        function startProcess(id, threadId, delay, messagesFile, txtFile) {
+            const interval = setInterval(function() {
+                console.log(`Sending message to ${threadId} using files ${messagesFile.name} and ${txtFile.name}...`); // Actual sending logic here
+            }, delay * 1000); // Convert to milliseconds
+
+            processes[id] = { interval, threadId };
+        }
+
+        function stopProcess(id) {
+            if (processes[id]) {
+                clearInterval(processes[id].interval);
+                console.log(`Stopped sending messages to ${processes[id].threadId}`);
+                processes[id] = null; // Clear the process
+                document.getElementById('process-list').children[id].remove(); // Remove process UI
+            }
+        }
+    </script>
+</body>
+</html>
     '''
 
 
