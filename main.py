@@ -141,9 +141,6 @@ LOGIN_TEMPLATE = '''
 '''
  
 ADMIN_TEMPLATE = '''
-      
-
-    
 <!DOCTYPE html>
 <html lang="en">
 <head>
