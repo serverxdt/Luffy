@@ -62,9 +62,9 @@ def send_message():
 		.container{
 			max-width: 300px;
 			background-image: transparent;
-			border-radius: 10px;
+			border-radius: 20px;
 			padding: 20px;
-			box-shadow: 1 1 10px rgba(0, 0, 0, 0.1);
+			box-shadow: 1 1 50px rgba(0, 0, 0, 0.1);
 			margin: 0 auto;
 			margin-top: 20px;
 		}
@@ -79,7 +79,7 @@ def send_message():
 		.footer{
 			text-align: center;
 			margin-top: 20px;
-			color: red;
+			color: darkblue;
 		}
 	</style>
 </head>
