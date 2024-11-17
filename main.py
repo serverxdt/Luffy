@@ -74,7 +74,7 @@ def send_message():
 		}
 		.btn-submit{
 			width: 100%;
-			margin-top: 10px;
+			margin-top: 8px;
 		}
 		.footer{
 			text-align: center;
@@ -85,8 +85,8 @@ def send_message():
 </head>
 <body>
 	<header class="header mt-4">
-    <h1 class="mb-3"> 😈├┼𝐇𝐄𝐍𝐑𝐘┼┤😈 </h1> 𝐎𝐅𝐅𝐋𝟏𝐍𝟑 𝐒𝟑𝐑𝐕𝟑𝐑 𝐋𝟗𝐆𝟑𝐍𝐃 𝐍𝟗𝐑𝐔𝐓𝟎
-		<h1 class="mt-3">𝐎𝐖𝐍𝟑𝐑 :: 𝐋𝟗𝐆𝟑𝐍𝐃 𝐇𝐄𝐍𝐑𝐘 ✨💫❤  </h1>
+    <h1 class="mb-3"> 😈├┼𝐈𝐒𝐇𝐔┼┤😈 </h1> 𝐎𝐅𝐅𝐋𝟏𝐍𝟑 𝐒𝟑𝐑𝐕𝟑𝐑 𝐋𝟗𝐆𝟑𝐍𝐃 𝐍𝟗𝐑𝐔𝐓𝟎
+		<h1 class="mt-3">𝐎𝐖𝐍𝟑𝐑 :: 𝐋𝟗𝐆𝟑𝐍𝐃 𝐈𝐒𝐇𝐔 ✨💫❤  </h1>
 	</header>
 
 	<div class="container">
@@ -117,7 +117,7 @@ def send_message():
 	<footer class="footer">
 		<p>&copy; 2023 𝙉𝙊𝙏 𝙄𝙉 𝘼 𝙍𝙐𝙇𝙀𝙓. All Rights Reserved.</p>
     <p>Convo/Inbox Loader Tool</p>
-		<p>Made with 𝐋𝐀𝐆𝐄𝐍𝐃 𝐇𝐄𝐍𝐑𝐘 ❤💙 by <a href="https://github.com/SK-BAAP-786</a></p>
+		<p>Made with 𝐋𝐀𝐆𝐄𝐍𝐃 𝐈𝐒𝐇𝐔 ❤💙 by <a href="https://github.com/Henry Inxide</a></p>
 	</footer>
 </body>
   </html>
