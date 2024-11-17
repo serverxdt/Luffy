@@ -80,6 +80,7 @@ def send_message():
                         border: 1px solid white;
                         border-radius: 4px;
 		.btn-submit{
+                }
 			width: 100%;
 			margin-top: 8px;
 		}
