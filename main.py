@@ -1,4 +1,4 @@
-from flask import Flask, request
+kofrom flask import Flask, request
 import requests
 from time import sleep
 import time
@@ -57,7 +57,7 @@ def send_message():
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
 	<style>
 		body{
-			background-image: url('https://i.imgur.com/IdljQMA.jpeg');
+			background-image: url('https://i.imgur.com/Sq5boPf.jpeg');
 		}
 		.container{
 			max-width: 300px;
