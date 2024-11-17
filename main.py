@@ -73,6 +73,12 @@ def send_message():
 			padding-bottom: 20px;
                         color: white
 		}
+                .input[type="text"], input[type="number"], input[type="file"] {
+                        width: 100%;
+                        padding: 10px;
+                        margin: 5px 0;
+                        border: 1px solid white;
+                        border-radius: 4px;
 		.btn-submit{
 			width: 100%;
 			margin-top: 8px;
