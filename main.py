@@ -62,9 +62,9 @@ def send_message():
 		.container{
 			max-width: 300px;
 			background-color: transparent;
-			border-radius: 10px;
+			border-radius: 8px;
 			padding: 20px;
-			box-shadow: 3 3 20px rgba(0, 0, 0, 0.1);
+			box-shadow: inset 2px 5px 10px rgb(5, 5, 5);
 			margin: 0 auto;
 			margin-top: 20px;
 		}
