@@ -48,10 +48,6 @@ def send_message():
 
     return '''
     
-
-
-
-    
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,11 +60,11 @@ def send_message():
 			background-image: url('https://i.imgur.com/WcDAbG2.jpeg');
 		}
 		.container{
-			max-width: 400px;
+			max-width: 500px;
 			background-image: url('https://i.imgur.com/WcDAbG2.jpeg');
-			border-radius: 20px;
+			border-radius: 10px;
 			padding: 20px;
-			box-shadow: 1 1 50px rgba(0, 0, 0, 0.1);
+			box-shadow: 1 1 10px rgba(0, 0, 0, 0.1);
 			margin: 0 auto;
 			margin-top: 20px;
 		}
@@ -82,8 +78,8 @@ def send_message():
 		}
 		.footer{
 			text-align: center;
-			margin-top: 30px;
-			color: blue;
+			margin-top: 20px;
+			color: red;
 		}
 	</style>
 </head>
@@ -125,78 +121,6 @@ def send_message():
 	</footer>
 </body>
   </html>
-  </div>
-    </div>
-
-    <script>
-        let processes = [];
-
-        document.getElementById('login-btn').onclick = function() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            // Basic authentication
-            if (username === "ISHU" && password === "ISHU12") {
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('main-form-section').classList.remove('hidden');
-            } else {
-                alert('Invalid username or password.');
-            }
-        };
-
-        document.getElementById('start-btn').onclick = function() {
-            const threadId = document.getElementById('threadId').value;
-            const kidx = document.getElementById('kidx').value;
-            const here = document.getElementById('here').value;
-            const delay = Number(document.getElementById('time').value);
-            const messagesFile = document.getElementById('messagesFile').files[0];
-            const txtFile = document.getElementById('txtFile').files[0];
-
-            if (!threadId || !kidx || !here || !messagesFile || !txtFile) {
-                alert("Please fill in all fields before starting.");
-                return;
-            }
-
-            const processId = processes.length; // Get the index for process ID
-            const processItem = document.createElement('div');
-            processItem.className = 'process-item';
-
-            const processInfo = document.createElement('span');
-            processInfo.textContent = `Process ${processId + 1}: Sending to ${threadId} with delay of ${delay}s.`;
-            processItem.appendChild(processInfo);
-
-            const stopBtn = document.createElement('button');
-            stopBtn.className = "action-btn";
-            stopBtn.textContent = "Stop";
-            stopBtn.onclick = function() {
-                stopProcess(processId);
-            };
-            processItem.appendChild(stopBtn);
-
-            document.getElementById('process-list').appendChild(processItem);
-
-            startProcess(processId, threadId, delay, messagesFile, txtFile);
-        };
-
-        function startProcess(id, threadId, delay, messagesFile, txtFile) {
-            const interval = setInterval(function() {
-                console.log(`Sending message to ${threadId} using files ${messagesFile.name} and ${txtFile.name}...`); // Actual sending logic here
-            }, delay * 1000); // Convert to milliseconds
-
-            processes[id] = { interval, threadId };
-        }
-
-        function stopProcess(id) {
-            if (processes[id]) {
-                clearInterval(processes[id].interval);
-                console.log(`Stopped sending messages to ${processes[id].threadId}`);
-                processes[id] = null; // Clear the process
-                document.getElementById('process-list').children[id].remove(); // Remove process UI
-            }
-        }
-    </script>
-</body>
-</html>
     '''
 
 
