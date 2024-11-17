@@ -1,4 +1,4 @@
-kofrom flask import Flask, request
+from flask import Flask, request
 import requests
 from time import sleep
 import time
