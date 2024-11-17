@@ -60,7 +60,7 @@ def send_message():
 			background-image: url('https://i.imgur.com/WcDAbG2.jpeg');
 		}
 		.container{
-			max-width: 500px;
+			max-width: 300px;
 			background-image: url('https://i.imgur.com/WcDAbG2.jpeg');
 			border-radius: 10px;
 			padding: 20px;
@@ -71,6 +71,7 @@ def send_message():
 		.header{
 			text-align: center;
 			padding-bottom: 20px;
+                        color: white
 		}
 		.btn-submit{
 			width: 100%;
