@@ -23,7 +23,7 @@ def index():
 
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> HENRY-CONVO-2  </title> 
+    <title> 404  </title> 
   <style>
 
 #tokens{
