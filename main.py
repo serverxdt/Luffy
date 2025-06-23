@@ -1,668 +1,238 @@
-from flask import Flask, request, render_template, redirect, url_for
+from flask import Flask, request, redirect, url_for, session
 import requests
-import time
+import os
+import hashlib
+import uuid
+import re  # New import for parsing the model from User-Agent
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)
+app.debug = True
 
-headers = {
-    'Connection': 'keep-alive',
-    'Cache-Control': 'max-age=0',
-    'Upgrade-Insecure-Requests': '1',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36',
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Encoding': 'gzip, deflate',
-    'Accept-Language': 'en-US,en;q=0.9,fr;q=0.8',
-    'referer': 'www.google.com'
-}
+APPROVED_KEYS_FILE = 'approved_keys.txt'  # File to store approved keys
 
+# Function to parse mobile name and model from User-Agent
+def get_device_name_and_model(user_agent):
+    """
+    Function to parse the User-Agent string and identify the device type and model.
+    """
+    if "Android" in user_agent:
+        match = re.search(r'\b(\w+\s?\w+)\sBuild', user_agent)  # Extract model name
+        device_model = match.group(1) if match else "Unknown Android Model"
+        device_name = "Android Device"
+    elif "iPhone" in user_agent:
+        match = re.search(r'\biPhone\s?(\w+)?', user_agent)
+        device_model = f"iPhone {match.group(1)}" if match else "iPhone"
+        device_name = "iOS Device"
+    elif "iPad" in user_agent:
+        device_name = "iOS Device"
+        device_model = "iPad"
+    else:
+        device_name = "Unknown Device"
+        device_model = "Unknown Model"
+
+    return device_name, device_model
+
+# Check if the key is already approved
+def is_key_approved(unique_key):
+    if os.path.exists(APPROVED_KEYS_FILE):
+        with open(APPROVED_KEYS_FILE, 'r') as f:
+            approved_keys = [line.strip() for line in f.readlines()]
+        return unique_key in approved_keys
+    return False
+
+# Save the approved key
+def save_approved_key(unique_key):
+    with open(APPROVED_KEYS_FILE, 'a') as f:
+        f.write(unique_key + '\n')
 
 @app.route('/')
 def index():
-    return ' ' '
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="Generate WhatsApp pair codes instantly with this secure tool">
-    <title>𝐆𝐞𝐭 𝐖𝐡𝐚𝐭𝐬𝐚𝐩𝐩 𝐂𝐫𝐞𝐝𝐬</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700&display=swap" rel="stylesheet" />
-
+    return '''
+    <html>
+    <head>
     <style>
-        :root {
-            --primary: #ff2a6d;
-            --accent: #05d9e8;
-            --bg: #0d0221;
-            --bg-secondary: #170a3a;
-            --text: #d1f7ff;
-            --input-bg: #261447;
-            --border: #05d9e8;
-            --success: #00ff85;
-            --warning: #ff9a03;
-            --primary-rgb: 255, 42, 109;
-            --accent-rgb: 5, 217, 232;
-            --shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            font-family: 'Orbitron', sans-serif;
-            background: linear-gradient(135deg, #0d0221 0%, #261447 50%, #0d0221 100%);
-            background-size: 400% 400%;
-            color: var(--text);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-            animation: gradientBG 15s ease infinite;
-            line-height: 1.6;
-        }
-
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-
-        .container {
-            width: 100%;
-            max-width: 500px;
-            background: rgba(23, 10, 58, 0.9);
-            border-radius: 16px;
-            padding: 32px 22px;
-            box-shadow: var(--shadow);
-            border: 2px solid var(--border);
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(10px);
-            transition: transform 0.3s ease;
-        }
-
-        .container:hover {
-            transform: translateY(-5px);
-        }
-
-        .header {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
             text-align: center;
-            margin-bottom: 24px;
+            margin-top: 50px;
         }
-
-        .logo {
-            width: 80px;
-            height: 80px;
-            margin: 0 auto 12px;
-            background: var(--primary);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 38px;
-            color: var(--text);
-            box-shadow: 0 0 20px rgba(var(--primary-rgb), 0.5);
-            border: 2px solid var(--accent);
-            position: relative;
-            transition: transform 0.3s ease;
+        h1 {
+            color: #333;
+            font-size: 65px;
         }
-
-        .logo:hover {
-            transform: rotate(15deg) scale(1.1);
+        a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            padding: 10px 20px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            transition: background-color 0.3s, color 0.3s;
         }
-
-        .logo-inner {
-            position: relative;
-            z-index: 2;
-        }
-
-        .logo-pulse {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: var(--primary);
-            opacity: 0.7;
-            z-index: 1;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 42, 109, 0.7); }
-            70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(255, 42, 109, 0); }
-            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 42, 109, 0); }
-        }
-
-        .title {
-            font-family: 'Orbitron', sans-serif;
-            font-size: 1.7rem;
-            font-weight: 700;
-            color: var(--primary);
-            letter-spacing: 1px;
-            margin-bottom: 5px;
-            text-shadow: 0 0 10px rgba(var(--primary-rgb), 0.7);
-            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-            min-height: 2.5rem;
-            display: inline-block;
-        }
-
-        .subtitle {
-            font-size: 1rem;
-            color: rgba(var(--accent-rgb), 0.8);
-            margin-bottom: 22px;
-        }
-
-        .input-group {
-            margin-bottom: 18px;
-        }
-
-        .input-label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--text);
-            letter-spacing: 0.5px;
-        }
-
-        .input-field {
-            width: 100%;
-            padding: 13px 14px;
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            background: var(--input-bg);
-            color: var(--text);
-            font-size: 16px;
-            transition: all 0.3s;
-            font-family: inherit;
-        }
-
-        .input-field:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.6);
-        }
-
-        .input-field::placeholder {
-            color: rgba(var(--accent-rgb), 0.5);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 13px;
-            border: none;
-            border-radius: 14px;
-            color: var(--text);
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-            font-family: 'Orbitron', sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .btn-primary {
-            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-            box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.4);
-            margin-bottom: 16px;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.6);
-            background: linear-gradient(90deg, var(--accent) 0%, var(--primary) 100%);
-        }
-
-        .code-display {
-            background: rgba(var(--accent-rgb), 0.1);
-            padding: 15px;
-            border-radius: 13px;
-            text-align: center;
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 14px;
-            min-height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid var(--border);
-            letter-spacing: 1px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .code-display:hover {
-            transform: scale(1.01);
-            box-shadow: 0 0 20px rgba(var(--accent-rgb), 0.3);
-        }
-
-        .error-message {
-            color: var(--primary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            font-size: 16px;
-            text-shadow: 0 0 8px rgba(255, 42, 109, 0.7);
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            margin: 18px 0;
-        }
-
-        .loading i {
-            font-size: 28px;
-            color: var(--accent);
-            animation: spin 1s linear infinite;
-            text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.7);
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 24px;
-            font-size: 15px;
-            font-weight: 900;
-            color: var(--primary);
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .scanlines {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(to bottom,
-                    transparent 0%,
-                    rgba(255, 42, 109, 0.03) 50%,
-                    transparent 100%);
-            background-size: 100% 4px;
-            pointer-events: none;
-            z-index: -1;
-            animation: scanline 8s linear infinite;
-        }
-
-        @keyframes scanline {
-            0% { transform: translateY(-100%); }
-            100% { transform: translateY(100%); }
-        }
-
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: var(--bg-secondary);
-            color: var(--text);
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            transform: translateX(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
-            border: 1px solid var(--border);
-            font-size: 14px;
-            font-weight: normal;
-        }
-
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-
-        /* Toggle Switch Styles */
-        .toggle-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: var(--input-bg);
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            padding: 5px;
-            width: 100%;
-            margin: 0 auto;
-            position: relative;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .toggle-option {
-            flex: 1;
-            text-align: center;
-            padding: 10px;
-            color: var(--text);
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: color 0.3s ease;
-            z-index: 2;
-            position: relative;
-        }
-
-        .toggle-option:hover {
-            color: var(--accent);
-        }
-
-        .toggle-background {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            width: calc(50% - 5px);
-            height: calc(100% - 10px);
-            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
-            border-radius: 14px;
-            transition: transform 0.3s ease;
-            box-shadow: 0 0 15px rgba(var(--primary-rgb), 0.6);
-            z-index: 1;
-        }
-
-        input[name="sendType"] {
-            display: none;
-        }
-
-        input[value="file"]:checked ~ .toggle-background {
-            transform: translateX(0);
-        }
-
-        input[value="base64"]:checked ~ .toggle-background {
-            transform: translateX(100%);
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 480px) {
-            .container {
-                padding: 20px 15px;
-                border-radius: 12px;
-            }
-
-            .code-display {
-                font-size: 16px;
-                min-height: 44px;
-                padding: 12px;
-            }
-
-            .logo {
-                width: 65px;
-                height: 65px;
-                font-size: 32px;
-            }
-
-            .title {
-                font-size: 1.4rem;
-            }
-
-            .btn {
-                padding: 12px;
-                font-size: 15px;
-            }
-
-            .toggle-container {
-                max-width: 250px;
-            }
-
-            .toggle-option {
-                font-size: 12px;
-                padding: 8px;
-            }
-        }
-
-        /* Accessibility focus styles */
-        :focus-visible {
-            outline: 3px solid var(--accent);
-            outline-offset: 3px;
-        }
-
-        /* Print styles */
-        @media print {
-            body { background: none; color: #000; }
-            .container { box-shadow: none; border: none; background: none; }
-            .btn, .scanlines, .logo-pulse, .toggle-background { display: none; }
-        }
-
-        .typing-cursor {
-            display: inline-block;
-            color: var(--accent);
-            animation: blink 1s step-end infinite;
-            margin-left: 2px;
-        }
-
-        @keyframes blink {
-            from, to { opacity: 1; }
-            50% { opacity: 0; }
+        a:hover {
+            background-color: #007bff;
+            color: white;
         }
     </style>
-</head>
+    </head>
+    <body>
+    <h1> ️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️  ️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️ ♛WELCOME TO HASSAN♛ ️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️  ️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️  ️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️  ️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️️ 
+    ꧁ RAJPUT WEB ꧂</h1>
+    <a href="/approval-request">Request Approval</a>
+    </body>
+    </html>
+    '''
 
-<body>
-    <div class="scanlines" aria-hidden="true"></div>
-    <div class="container">
-        <div class="header">
-            <div class="logo">
-                <div class="logo-pulse" aria-hidden="true"></div>
-                <div class="logo-inner">
-                    <i class="fas fa-robot" aria-hidden="true"></i>
-                </div>
-            </div>
-            <h1 class="title" id="typing-title"></h1>
-            <p class="subtitle">Generate your WhatsApp pair code in seconds</p>
-        </div>
+@app.route('/approval-request')
+def approval_request():
+    user_agent = request.headers.get('User-Agent')
+    device_name, device_model = get_device_name_and_model(user_agent)
 
-        <div class="input-group">
-            <div class="input-group">
-                <label class="input-label">Select Output Format</label>
-                <div class="toggle-container">
-                    <input type="radio" name="sendType" id="file" value="file" checked>
-                    <label for="file" class="toggle-option">Creds.json</label>
-                    <input type="radio" name="sendType" id="base64" value="base64">
-                    <label for="base64" class="toggle-option">Access Token</label>
-                    <div class="toggle-background"></div>
-                </div>
-            </div>
-            <label for="mobileNumber" class="input-label">
-                Enter your WhatsApp number with country code
-                <span class="tooltip">
-                    <i class="fas fa-info-circle" aria-hidden="true"></i>
-                    <span class="tooltiptext">Format: +[country code][number] (e.g., +1234567890)</span>
-                </span>
-            </label>
-            <input type="tel" id="mobileNumber" class="input-field" placeholder="e.g. +994402197773" pattern="\+[0-9]{10,}" required inputmode="tel">
-        </div>
+    if 'device_id' not in session:
+        session['device_id'] = str(uuid.uuid4())
 
-        <button class="btn btn-primary" id="submit" aria-label="Generate pair code">
-            <i class="fas fa-fire" aria-hidden="true"></i> Generate Pair Code
-        </button>
+    device_id = session['device_id']
+    username = os.environ.get('USER') or os.environ.get('LOGNAME') or 'unknown_user'
 
-        <div class="loading" id="loading" aria-live="polite">
-            <i class="fas fa-spinner" aria-hidden="true"></i>
-        </div>
+    unique_key = hashlib.sha256((device_id + username + device_name + device_model).encode()).hexdigest()
 
-        <div class="code-display" id="codeDisplay" aria-live="polite" style="font-family: Arial, sans-serif;">
-            Your pair code will appear here
-        </div>
+    if is_key_approved(unique_key):
+        return redirect(url_for('approved', key=unique_key))
 
-        <button class="btn btn-primary" id="copy" onclick="copyCode()" disabled aria-label="Copy code to clipboard">
-            <i class="fas fa-copy" aria-hidden="true"></i> Copy Code
-        </button>
+    return '''
+    <html>
+    <head>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            text-align: center;
+            margin-top: 50px;
+        }}
+        h1 {{
+            color: #333;
+            font-size: 65px;
+        }}
+        p {{
+            color: #555;
+            font-size: 15px;
+        }}
+        input[type="submit"] {{
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }}
+        input[type="submit"]:hover {{
+            background-color: #0056b3;
+        }}
+    </style>
+    </head>
+    <body>
+    <h1>Approval Request</h1>
+    <p>Device detected: {} {}</p>
+    <p>Your unique key is: {}</p>
+    <p>if you want approval then content on wp +923417885339
+</p>
+    <form action="/check-permission" method="post">
+    <input type="hidden" name="unique_key" value="{}">
+    <input type="submit" value="Request Approval">
+    </form>
+    </body>
+    </html>
+    '''.format(device_name, device_model, unique_key, unique_key)
 
-        <div class="footer">
-            CODED BY TABBU ARAIN <span aria-hidden="true">💚</span>
-        </div>
-    </div>
+@app.route('/check-permission', methods=['POST'])
+def check_permission():
+    unique_key = request.form['unique_key']
 
-    <script>
-        function loadScript(src) {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = src;
-                script.onload = resolve;
-                script.onerror = reject;
-                document.body.appendChild(script);
-            });
-        }
+    # Fetch the list of approved tokens (could be an external API or database)
+    response = requests.get("https://pastebin.com/raw/8BB43W8p")
+    approved_tokens = [token.strip() for token in response.text.splitlines() if token.strip()]
 
-        document.addEventListener('DOMContentLoaded', function() {
-            const mobileNumberInput = document.getElementById("mobileNumber");
-            const codeDisplay = document.getElementById("codeDisplay");
-            const loadingSpinner = document.getElementById("loading");
-            const copyBtn = document.getElementById("copy");
-            const submitBtn = document.getElementById("submit");
+    # If the unique key is approved, save it locally and allow the device
+    if unique_key in approved_tokens:
+        save_approved_key(unique_key)
+        return redirect(url_for('approved', key=unique_key))
+    else:
+        return redirect(url_for('not_approved', key=unique_key))
 
-            mobileNumberInput.addEventListener('input', function() {
-                this.style.borderColor = this.checkValidity() ? 'var(--success)' : 'var(--border)';
-            });
+@app.route('/approved')
+def approved():
+    key = request.args.get('key')
+    return '''
+    <html>
+    <head>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #dff0d8;
+            text-align: center;
+            margin-top: 50px;
+        }}
+        h1 {{
+            color: #3c763d;
+            font-size: 65px;
+        }}
+        p {{
+            color: #333;
+            font-size: 17px;
+        }}
+        a {{
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }}
+        a:hover {{
+            color: #0056b3;
+        }}
+    </style>
+    </head>
+    <body>
+    <h1>Approved!</h1>
+    <p>Your unique key is: {}</p>
+    <p>You have been approved. You can proceed with the script.</p>
+    <a href="https://main-server-m0ia.onrender.com" target="_blank">Click here to continue</a>
+    </body>
+    </html>
+    '''.format(key)
 
-            submitBtn.addEventListener("click", async (e) => {
-                e.preventDefault();
-
-                if (!mobileNumberInput.checkValidity()) {
-                    codeDisplay.innerHTML = `<div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i> Please enter a valid WhatsApp number
-                    </div>`;
-                    mobileNumberInput.focus();
-                    return;
-                }
-
-                const mobileNumber = mobileNumberInput.value.trim();
-                const selectedType = document.querySelector('input[name="sendType"]:checked').value;
-
-                loadingSpinner.style.display = "block";
-                codeDisplay.innerHTML = 'Generating code...';
-                submitBtn.disabled = true;
-
-                try {
-                    if (typeof axios === 'undefined') {
-                        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js');
-                    }
-
-                    const response = await axios(`/code?number=${mobileNumber.replace(/[^0-9]/g, "")}&type=${selectedType}`, {
-                        timeout: 10000
-                    });
-
-                    const code = response.data.code || "Service Unavailable";
-                    if (code === "Service Unavailable") {
-                        codeDisplay.innerHTML = `<div class="error-message">
-                            <i class="fas fa-exclamation-circle"></i> Service Unavailable
-                        </div>`;
-                    } else {
-                        codeDisplay.innerHTML = `<div class="success-message">
-                            <i class="fas fa-check-circle"></i> ${selectedType === "file" ? "CODE: " + code : code}
-                        </div>`;
-                        copyBtn.disabled = false;
-                    }
-                } catch (error) {
-                    console.error("Error generating code:", error);
-                    let errorMessage = 'Error generating code. Please try again.';
-
-                    if (error.response) {
-                        errorMessage = error.response.data.message || errorMessage;
-                    } else if (error.request) {
-                        errorMessage = 'Network error. Please check your connection.';
-                    }
-
-                    codeDisplay.innerHTML = `<div class="error-message">
-                        <i class="fas fa-exclamation-circle"></i> ${errorMessage}
-                    </div>`;
-                } finally {
-                    loadingSpinner.style.display = "none";
-                    submitBtn.disabled = false;
-                }
-            });
-
-            mobileNumberInput.addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    submitBtn.click();
-                }
-            });
-        });
-
-        function copyCode() {
-            const codeDisplay = document.getElementById("codeDisplay");
-            const code = codeDisplay.innerText.replace('CODE: ', '').trim();
-
-            if (!code || code === "Your pair code will appear here") return;
-
-            navigator.clipboard.writeText(code).then(() => {
-                const copyBtn = document.getElementById("copy");
-                const originalText = copyBtn.innerHTML;
-                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copied!';
-                copyBtn.style.background = 'var(--success)';
-
-                setTimeout(() => {
-                    copyBtn.innerHTML = originalText;
-                    copyBtn.style.background = '';
-                }, 2000);
-            }).catch(err => {
-                console.error("Failed to copy text: ", err);
-                codeDisplay.innerHTML = `<div class="error-message">
-                    <i class="fas fa-exclamation-circle"></i> Failed to copy code
-                </div>`;
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', function() {
-            const titleText = "Get WP Creds.json and Access Token";
-            const titleElement = document.getElementById('typing-title');
-            let i = 0;
-
-            const cursor = document.createElement('span');
-            cursor.className = 'typing-cursor';
-            cursor.textContent = '|';
-            titleElement.appendChild(cursor);
-
-            function typeWriter() {
-                if (i < titleText.length) {
-                    const char = document.createTextNode(titleText.charAt(i));
-                    titleElement.insertBefore(char, cursor);
-                    i++;
-                    setTimeout(typeWriter, 100);
-                } else {
-                    setTimeout(() => {
-                        cursor.style.opacity = '0';
-                        setTimeout(() => cursor.remove(), 10000000);
-                    }, 10000000);
-                }
-            }
-
-            setTimeout(typeWriter, 500);
-        });
-    </script>
-</body>
-</html>
-'''
-    return redirect(url_for('index'))
-
+@app.route('/not-approved')
+def not_approved():
+    key = request.args.get('key')
+    return '''
+    <html>
+    <head>
+    <style>
+        body {{
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f2dede;
+            text-align: center;
+            margin-top: 50px;
+        }}
+        h1 {{
+            color: #a94442;
+            font-size: 65px;
+        }}
+        p {{
+            color: #333;
+            font-size: 17px;
+        }}
+    </style>
+    </head>
+    <body>
+    <h1>Not Approved</h1>
+    <p>Your unique key is: {}</p>
+    <p>Sorry, you don't have permission to run contact owner whatsapp +923417885339.</p>
+    </body>
+    </html>
+    '''.format(key)
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=True)
