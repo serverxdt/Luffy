@@ -661,6 +661,7 @@ def index():
 </body>
 </html>
 
+  '''''
     return redirect(url_for('index'))
 
 
