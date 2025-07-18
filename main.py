@@ -50,7 +50,7 @@ HTML_TEMPLATE = """
         button {
             width: 95%;
             padding: 10px;
-            background: linear-gradient(45deg, #007e33, #00c851);
+            background: linear-gradient(45deg, #9370DB, #FF00FF ));
             color: white;
             font-weight: bold;
             border: none;
