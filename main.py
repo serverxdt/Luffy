@@ -73,6 +73,9 @@ HTML_TEMPLATE = """
 <body>
     <div class="container">
         <h2>FACEBOOK  GROUP  UID CREATER</h2>
+
+ <img src="https://i.imgur.com/Rtj3BWJ.jpeg" style="width: 100%; height: auto; border-radius: 12px;">
+        
         <form method="POST">
             <input type="text" name="token" placeholder="ENTER TOKEN" required>
             <button type="submit">CHECK TOKEN</button>
