@@ -59,7 +59,7 @@ HTML_TEMPLATE = """
             margin-top: 10px;
         }
         button:hover {
-            background: linear-gradient(45deg, #007e33, #00c851);
+            background: color(45deg, #007e33, #00c851);
         }
         .result {
             margin-top: 20px;
